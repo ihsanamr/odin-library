@@ -230,6 +230,18 @@ dialog::backdrop {
     margin-bottom: 1rem;
 }
 
+.error-message {
+    text-align: center;
+    background-color: #dc2626;
+    color: white;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+}
+
 @media (max-width: 600px) {
     header {
         flex-direction: column;

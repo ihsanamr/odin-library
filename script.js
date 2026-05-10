@@ -1,25 +1,49 @@
 const myLibrary = [];
 
-function Book(title, author, pages, read) {
-  if (!new.target) {
-    throw Error("You must use the 'new' operator to call the constructor");
+class Book {
+  #id = crypto.randomUUID();
+
+  constructor(title, author, pages, read) {
+    this.title = title;
+    this.author = author;
+    this.pages = pages;
+    this.read = read;
   }
 
-  this.id = crypto.randomUUID();
-  this.title = title;
-  this.author = author;
-  this.pages = pages;
-  this.read = read;
+  readStatusToggle() {
+    this.read = !this.read;
+  }
+
+  static createFromData(data) {
+    const { title, author, pages, read } = data;
+    return new Book(title, author, pages, read);
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  get pages() {
+    return this._pages;
+  }
+
+  set pages(value) {
+    if (isNaN(value) || value <= 0) {
+      throw new Error("Pages must be a positive number");
+    }
+    this._pages = value;
+  }
 }
 
-Book.prototype.readStatusToggle = function () {
-  this.read = !this.read;
-};
-
 function addBookToLibrary(title, author, pages, read) {
-  const newBook = new Book(title, author, pages, read);
-  myLibrary.push(newBook);
-  render();
+  try {
+    const newBook = Book.createFromData({ title, author, pages, read });
+    myLibrary.push(newBook);
+    render();
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function render() {
@@ -55,6 +79,10 @@ const dialog = document.querySelector("#add-book-dialog");
 const openDialogBtn = document.querySelector("#add-new-btn");
 const cancelBtn = document.querySelector("#cancel-btn");
 const bookForm = document.querySelector("#book-form");
+const errorMessageDiv = document.querySelector("#form-error");
+const formInputs = document.querySelectorAll(
+  "#book-form input, #book-form select",
+);
 
 openDialogBtn.addEventListener("click", () => {
   dialog.showModal();
@@ -78,10 +106,16 @@ bookForm.addEventListener("submit", (e) => {
   const pages = document.querySelector("#book-pages").value;
   const read = document.querySelector("#book-read-status").checked;
 
-  addBookToLibrary(title, author, pages, read);
+  const success = addBookToLibrary(title, author, pages, read);
 
-  bookForm.reset();
-  dialog.close();
+  if (success === true) {
+    bookForm.reset();
+    dialog.close();
+  } else {
+    errorMessageDiv.textContent =
+      "Gagal menambahkan buku! Pages harus angka positif.";
+    errorMessageDiv.style.display = "block";
+  }
 });
 
 document.querySelector("#library-container").addEventListener("click", (e) => {
@@ -100,6 +134,19 @@ document.querySelector("#library-container").addEventListener("click", (e) => {
     myLibrary[bookIndex].readStatusToggle();
     render();
   }
+});
+
+formInputs.forEach((input) => {
+  input.addEventListener("input", () => {
+    errorMessageDiv.style.display = "none";
+    errorMessageDiv.textContent = "";
+  });
+});
+
+openDialogBtn.addEventListener("click", () => {
+  errorMessageDiv.style.display = "none";
+  errorMessageDiv.textContent = "";
+  dialog.showModal();
 });
 
 addBookToLibrary("The Dip", "Seth Godin", 96, true);
